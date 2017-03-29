@@ -31,7 +31,7 @@ $( document ).ready(function() {
         success: function (data) {
             var lawn_id = 0;
             var campusnet_id = 0;
-            var override = null;
+            var override = getParameterByName('override');
             for (var i = 0, len = data.components.length; i < len; i++) {
                 if (data.components[i].name == "LAWN") { lawn_id = i; }
                 if (data.components[i].name == "Campus Network") { campusnet_id = i; }
@@ -76,4 +76,16 @@ $( document ).ready(function() {
             $('body').css("background-color","#333");
         }
     })
+
+    function getParameterByName(name, url) {
+        if (!url) {
+            url = window.location.href;
+        }
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
 });
