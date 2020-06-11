@@ -27,7 +27,7 @@ $( document ).ready(function() {
         '<iframe width="320" height="240" src="https://www.youtube.com/embed/t3otBjVZzT0?autoplay=1" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'
     ];
 
-    var quips_inop_append = "<br/>Full details can be found on the <a href='http://status.gatech.edu'>GT OIT Status Page</a>.";
+    var quips_inop_append = "Full details can be found on the <a href='http://status.gatech.edu'>GT OIT Status Page</a>.";
 
     $.getJSON("https://2589849383268831.hostedstatus.com/1.0/status/5be9af0e5638b904c2030699")
         .done(function (data) {
@@ -38,34 +38,64 @@ $( document ).ready(function() {
             var lawn_container = network_containers.find(element => element.name === "LAWN");
             var campusnet_container = network_containers.find(element => element.name === "Campus Network");
 
-            if (lawn_container.status == "Degraded Performance" || override == "degraded") {
-                var rand_title = Math.floor(Math.random() * quips_inop_title.length);
-                var rand_content = Math.floor(Math.random() * quips_inop_content.length);
-                $('#title').text(quips_inop_title[rand_title]);
-                $('#status').text("LAWN is currently in a degraded state.");
-                $('#content').html(quips_inop_content[rand_content] + quips_inop_append);
-                $('body').css("background-color", "goldenrod");
-            } else if (lawn_container.status == "Partial Service Disruption" || override == "partial") {
-                var rand_title = Math.floor(Math.random() * quips_inop_title.length);
-                var rand_content = Math.floor(Math.random() * quips_inop_content.length);
-                $('#title').text(quips_inop_title[rand_title]);
-                $('#status').text("There is a partial LAWN outage.");
-                $('#content').html(quips_inop_content[rand_content]+ quips_inop_append)
-                $('body').css("background-color", "orange");
-            } else if (lawn_container.status == "Service Disruption" || override == "major") {
-                var rand_title = Math.floor(Math.random() * quips_inop_title.length);
-                var rand_content = Math.floor(Math.random() * quips_inop_content.length);
-                $('#title').text(quips_inop_title[rand_title]);
-                $('#status').text("There is a major LAWN outage.");
-                $('#content').html(quips_inop_content[rand_content]+ quips_inop_append)
-                $('body').css("background-color", "red");
-            } else if (lawn_container.status == "Operational" && override == null) {
-                var rand_title = Math.floor(Math.random() * quips_operational_title.length);
-                var rand_content = Math.floor(Math.random() * quips_operational_content.length);
-                $('#title').text(quips_operational_title[rand_title]);
+            var rand_title_inop = Math.floor(Math.random() * quips_inop_title.length);
+            var rand_content_inop = Math.floor(Math.random() * quips_inop_content.length);
+            var rand_title_op = Math.floor(Math.random() * quips_operational_title.length);
+            var rand_content_op = Math.floor(Math.random() * quips_operational_content.length);
+
+            var services = {
+                "lawn": {
+                    "current_status": lawn_container.status,
+                    "is_inop": (lawn_container.status !== "Operational")
+                },
+                "campusnet": {
+                    "current_status": campusnet_container.status,
+                    "is_inop": (campusnet_container.status !== "Operational")
+                }
+            }
+
+            var status_map = {
+                "Scheduled Maintenance": {
+                    "phrase": "undergoing scheduled maintenance",
+                    "color": "goldenrod"
+                },
+                "Degraded Performance": {
+                    "phrase": "in a degraded state",
+                    "color": "goldenrod"
+                },
+                "Partial Service Disruption": {
+                    "phrase": "experiencing a partial service disruption",
+                    "color": "orange"
+                },
+                "Service Disruption": {
+                    "phrase": "experiencing a service disruption",
+                    "color": "red"
+                },
+                "Operational": {
+                    "phrase": "operational",
+                    "color": "green"
+                },
+                "Unknown": {
+                    "phrase": "unknown",
+                    "color": "#333"
+                }
+            }
+
+            if (services.lawn.is_inop || override === "lawninop") {
+                $('#title').text(quips_inop_title[rand_title_inop]);
+                $('#status').text("LAWN is " + status_map[services.lawn.current_status].phrase);
+                $('#content').html(quips_inop_content[rand_content_inop] + "<br/>" + quips_inop_append);
+                $('body').css("background-color", status_map[services.lawn.current_status].color);
+            } else if (services.campusnet.is_inop || override === "campusnetinop") {
+                $('#title').text(quips_inop_title[rand_title_inop]);
+                $('#status').text("Campus Network is " + status_map[services.campusnet.current_status].phrase);
+                $('#content').html(quips_inop_content[rand_content_inop] + "<br/>" + quips_inop_append);
+                $('body').css("background-color", status_map[services.campusnet.current_status].color);
+            } else if (services.lawn.is_inop === false) {
+                $('#title').text(quips_operational_title[rand_title_op]);
                 $('#status').text("No issues currently reported for LAWN.");
-                $('#content').html(quips_operational_content[rand_content]);
-                $('body').css("background-color", "green");
+                $('#content').html(quips_operational_content[rand_content_op]);
+                $('body').css("background-color", status_map[services.lawn.current_status].color);
             } else {
                 $('#title').text("I'm not quite sure.");
                 $('#status').text("Something went wrong while checking the status.");
